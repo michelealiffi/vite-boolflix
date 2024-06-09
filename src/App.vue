@@ -1,47 +1,72 @@
 <script>
 import axios from 'axios';
 import { store } from './store';
-import AppHeader from './components/AppHeader.vue';
 import AppMain from './components/AppMain.vue';
 export default {
-  data() {
-    return {
-      store
-    }
-  },
-  components: {
-    AppHeader,
+  components :{
     AppMain,
   },
-  methods: {
-    search() {
-        const params = {
-          api_key: this.store.apiInfo.endpoints.api_key,
-          include_adult: this.store.apiInfo.endpoints.include_adult,
-          language: this.store.apiInfo.endpoints.language,
-          page: this.store.apiInfo.endpoints.page,
-          query: this.store.apiInfo.endpoints.query,
-        };
-        axios.get(this.store.apiInfo.url, {params}).then((response) => {
-          this.store.movie = response.data;
-          console.log(this.store.movie);
-        });
-    },
-    searchButton() {
-        this.search();
-    },
-    resetButton() {
-        this.store.apiInfo.endpoints.query = "";
-        this.search();
-    },
-    created() {
-      this.search();
-    },
+  data() {
+    return {
+      store,
+      search: '',
+    };
   },
-};
+  methods: {
+    seachAll(){
+      this.filmsGen(),
+      this.tvGen(),
+      this.imgCopertinaTv()
+    },
+    filmsGen() {
+      let url = `${this.store.apiUrlMovie}${this.store.apiKey}&query=${this.search}&language=it-IT`;
+      axios.get(url)
+        .then(response => {
+          this.store.results = response.data.results
+
+        })
+    },
+    tvGen(){
+      let url = `${this.store.apiUrlTv}${this.store.apiKey}&query=${this.search}&language=it-IT`;
+      axios.get(url)
+        .then(response => {
+          this.store.resultTv = response.data.results
+        })
+    },
+    imgCopertinaTv(){
+      let url = `${this.store.urlBaseImg}${this.store.imgSize}${this.store.results.backdrop_path}`
+      axios.get(url).then(response => {
+        this.store.resultImg = response.data.results
+      })
+    }
+  }
+}
 </script>
 
 <template>
-  <AppHeader @searchButton="searchButton" @resetButton="resetButton"/>
-  <AppMain/>
+  <nav class="navbar bg-black">
+    <div class="container-fluid">
+      <h1 class="navbar-brand boolflix">BoolFlix</h1>
+      <form class="d-flex" @submit.prevent="seachAll">
+        <input class="form-control me-2" v-model="search" type="text" placeholder="Scegli il tuo film">
+        <button class="btn btn-outline color-red border-red">Cerca</button>
+      </form>
+
+    </div>
+
+  </nav>
+<AppMain />
 </template>
+
+<style scoped>
+.boolflix{
+  color: red;
+  font-size: xx-large;
+}
+.color-red{
+  color: red;
+}
+.border-red{
+  border: 1px solid red;
+}
+</style>
